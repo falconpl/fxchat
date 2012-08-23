@@ -1,2 +1,4 @@
 build/
 *.fam
+*.o
+*.so
