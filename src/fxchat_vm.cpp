@@ -36,7 +36,7 @@ XChatVM::XChatVM( ScriptData *owner ):
 void XChatVM::onIdleTime( Falcon::numeric seconds )
 {
    scriptData()->putAtSleep( seconds );
-   throw Falcon::VMEventReturn();
+   breakRequest(true);
 }
 
 

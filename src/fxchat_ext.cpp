@@ -1781,31 +1781,31 @@ Module *create_xchat_module()
    // Xchat interface functions -- private class XChat
    Falcon::Symbol *c_xchat = self->addClass( "%XChat" );
    c_xchat->exported( false );
-   self->addClassMethod( c_xchat, "command", Falcon::Ext::XChat_command );
-   self->addClassMethod( c_xchat, "message", Falcon::Ext::XChat_message );
-   self->addClassMethod( c_xchat, "emit", Falcon::Ext::XChat_emit );
-   self->addClassMethod( c_xchat, "sendModes", Falcon::Ext::XChat_sendModes );
-   self->addClassMethod( c_xchat, "findContext", Falcon::Ext::XChat_findContext );
-   self->addClassMethod( c_xchat, "getContext", Falcon::Ext::XChat_getContext );
-   self->addClassMethod( c_xchat, "getInfo", Falcon::Ext::XChat_getInfo );
-   self->addClassMethod( c_xchat, "getPrefs", Falcon::Ext::XChat_getPrefs );
-   self->addClassMethod( c_xchat, "nickcmp", Falcon::Ext::XChat_nickcmp );
-   self->addClassMethod( c_xchat, "strip", Falcon::Ext::XChat_strip );
+   self->addClassMethod( c_xchat, "command", &Falcon::Ext::XChat_command );
+   self->addClassMethod( c_xchat, "message", &Falcon::Ext::XChat_message );
+   self->addClassMethod( c_xchat, "emit", &Falcon::Ext::XChat_emit );
+   self->addClassMethod( c_xchat, "sendModes", &Falcon::Ext::XChat_sendModes );
+   self->addClassMethod( c_xchat, "findContext", &Falcon::Ext::XChat_findContext );
+   self->addClassMethod( c_xchat, "getContext", &Falcon::Ext::XChat_getContext );
+   self->addClassMethod( c_xchat, "getInfo", &Falcon::Ext::XChat_getInfo );
+   self->addClassMethod( c_xchat, "getPrefs", &Falcon::Ext::XChat_getPrefs );
+   self->addClassMethod( c_xchat, "nickcmp", &Falcon::Ext::XChat_nickcmp );
+   self->addClassMethod( c_xchat, "strip", &Falcon::Ext::XChat_strip );
 
-   self->addClassMethod( c_xchat, "listChannels", Falcon::Ext::XChat_listChannels );
-   self->addClassMethod( c_xchat, "listDcc", Falcon::Ext::XChat_listDcc );
-   self->addClassMethod( c_xchat, "listUsers", Falcon::Ext::XChat_listUsers );
-   self->addClassMethod( c_xchat, "listNotify", Falcon::Ext::XChat_listNotify );
-   self->addClassMethod( c_xchat, "listIgnore", Falcon::Ext::XChat_listIgnore );
-   self->addClassMethod( c_xchat, "list", Falcon::Ext::XChat_list );
+   self->addClassMethod( c_xchat, "listChannels", &Falcon::Ext::XChat_listChannels );
+   self->addClassMethod( c_xchat, "listDcc", &Falcon::Ext::XChat_listDcc );
+   self->addClassMethod( c_xchat, "listUsers", &Falcon::Ext::XChat_listUsers );
+   self->addClassMethod( c_xchat, "listNotify", &Falcon::Ext::XChat_listNotify );
+   self->addClassMethod( c_xchat, "listIgnore", &Falcon::Ext::XChat_listIgnore );
+   self->addClassMethod( c_xchat, "list", &Falcon::Ext::XChat_list );
 
-   self->addClassMethod( c_xchat, "hookCommand", Falcon::Ext::XChat_hookCommand );
-   self->addClassMethod( c_xchat, "hookPrint", Falcon::Ext::XChat_hookPrint );
-   self->addClassMethod( c_xchat, "hookServer", Falcon::Ext::XChat_hookServer );
-   self->addClassMethod( c_xchat, "hookTimer", Falcon::Ext::XChat_hookTimer );
+   self->addClassMethod( c_xchat, "hookCommand", &Falcon::Ext::XChat_hookCommand );
+   self->addClassMethod( c_xchat, "hookPrint", &Falcon::Ext::XChat_hookPrint );
+   self->addClassMethod( c_xchat, "hookServer", &Falcon::Ext::XChat_hookServer );
+   self->addClassMethod( c_xchat, "hookTimer", &Falcon::Ext::XChat_hookTimer );
 
    // create a singletone instance of %XChat class.
-   Symbol *o_xchat = new Symbol( self, self->addString( "XChat" ) );
+   Symbol *o_xchat = new Symbol( self, "XChat" );
    o_xchat->setInstance( c_xchat );
    o_xchat->exported( true );
    self->addGlobalSymbol( o_xchat );
@@ -1815,14 +1815,14 @@ Module *create_xchat_module()
    c_xchat->exported( false );
    self->addClassProperty( c_ctx, "server" );
    self->addClassProperty( c_ctx, "channel" );
-   self->addClassMethod( c_ctx, "set", Falcon::Ext::XChatContext_set );
-   self->addClassMethod( c_ctx, "print", Falcon::Ext::XChatContext_print );
-   self->addClassMethod( c_ctx, "emit", Falcon::Ext::XChatContext_emit );
-   self->addClassMethod( c_ctx, "command", Falcon::Ext::XChatContext_command );
-   self->addClassMethod( c_ctx, "message", Falcon::Ext::XChatContext_message );
-   self->addClassMethod( c_ctx, "getInfo", Falcon::Ext::XChatContext_getInfo );
-   self->addClassMethod( c_ctx, "listUsers", Falcon::Ext::XChatContext_listUsers );
-   self->addClassMethod( c_ctx, "listNotify", Falcon::Ext::XChatContext_listNotify );
+   self->addClassMethod( c_ctx, "set", &Falcon::Ext::XChatContext_set );
+   self->addClassMethod( c_ctx, "print", &Falcon::Ext::XChatContext_print );
+   self->addClassMethod( c_ctx, "emit", &Falcon::Ext::XChatContext_emit );
+   self->addClassMethod( c_ctx, "command", &Falcon::Ext::XChatContext_command );
+   self->addClassMethod( c_ctx, "message", &Falcon::Ext::XChatContext_message );
+   self->addClassMethod( c_ctx, "getInfo", &Falcon::Ext::XChatContext_getInfo );
+   self->addClassMethod( c_ctx, "listUsers", &Falcon::Ext::XChatContext_listUsers );
+   self->addClassMethod( c_ctx, "listNotify", &Falcon::Ext::XChatContext_listNotify );
 
 
    // create the private class hook
@@ -1830,7 +1830,7 @@ Module *create_xchat_module()
    c_xchat->exported( false );
    self->addClassProperty( c_hook, "match" );
    self->addClassProperty( c_hook, "callback" );
-   self->addClassMethod( c_hook, "unhook", Falcon::Ext::XChatHook_unhook );
+   self->addClassMethod( c_hook, "unhook", &Falcon::Ext::XChatHook_unhook );
 
 
    self->addConstant( "XCHAT_EAT_ALL", (Falcon::int64) XCHAT_EAT_ALL );
