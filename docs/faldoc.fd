@@ -1,0 +1,40 @@
+#
+# FALDOC - Falcon Documentation system
+#
+# Faldoc file for FXChat - Falcon XChat plugin.
+#
+
+################################################
+# Documentation generic data
+################################################
+
+Title = Falcon - XChat plugin.
+Author = The Falcon Committee
+Version = 0.9.10
+
+################################################
+# Faldoc Input settings
+################################################
+
+Input.directory=../src
+Input.directory=.
+
+Input.wildcard=*.cpp
+Input.wildcard=*.fd
+Input.recursive=false
+
+################################################
+# Faldoc Output settings
+################################################
+
+Output.module=html
+
+################################################
+# Faldoc HTML Output settings
+# Each module can be self-configured through
+# Output.<module>.<parameters> configs
+################################################
+
+Output.html.directory=fxchat-0.9.10-docs
+Output.html.url=.
+Output.html.doctitle=Falcon - XChat plugin-

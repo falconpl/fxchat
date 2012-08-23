@@ -1,0 +1,48 @@
+/*==============================================
+   Xchat test_cmd.fal
+
+   Shows how to install a command handler.
+
+   This script will install the "FXList" command
+   which lists all the opened channels.
+==============================================*/
+
+// This is our command callback.
+// It will be called when the user writes
+// "/fxlist ..."
+// Extra parameters are optional and receive
+// the extra data that has been  passed to the
+// handler registration function below.
+
+function list_chans( cmd, params, extra1, extra2 )
+   //Show how we've been called.
+   > "Called with: ", cmd, " ", params
+   > "Extra1 = ", extra1
+   > "Extra2 = ", extra2
+
+   // Do what we're supposed to do: list the channels
+   list = XChat.listChannels()
+
+   // Inspect output is sent to the error stream, which
+   // the xchat plugin prefixes with the script name.
+   inspect( list )
+
+   return XCHAT_EAT_ALL
+end
+
+//=================
+// Main program
+
+fxlist_help = "
+   Test XChat - Falcon plugin command;
+   This commands lists the channels (or the tabs) currently
+   opened in Xchat. You can also add an arbitrary number of paramters,
+   that will be reported by the callback function.\n"
+
+XChat.hookCommand( "FXLIST", list_chans, fxlist_help,
+      "extra param 1", "extra param 2" )
+
+// see test_server.fal to see the usage of XChatHook object, returned
+// by hookCommand command.
+
+> scriptName, ": Installed command /FXLIST"

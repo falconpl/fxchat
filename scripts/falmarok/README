@@ -1,0 +1,77 @@
+
+
+                            FALMAROK
+                           
+                          Version 1.2
+
+
+  This small script for XChat prints a "Now playing" notify on the
+current channel when KDE music player Amarok changes the tune. It
+has also a small set of commands that allow to turn it on or off,
+print only locally without sending to the channel and print manually
+the curren tune.
+
+  Also, a set of simple utility commands to start, stop and skip
+tunes are provided.
+
+
+REQUIREMENTS
+============
+
+  - Falcon >= 0.9
+  - XChat 2.x
+  - FXchat >= 0.9.8
+  - Amarok 1.x
+  - DCop command line client (dcop)
+
+
+INSTRUCTIONS
+============
+
+  Once loaded in XChat, the script stays resident and provides the following
+commands:
+
+   Now Playing commands:
+      /falmarok auto on: Activate automatic notify on play changes
+      /falmarok auto off: De-acrivate automatic notify on play changes
+      /falmarok nowp: Reports the currently playing tune
+
+   Tune commands:
+      /falmarok stop: Stop playing music
+      /falmarok pause: Pause music
+      /falmarok play: Start playing music
+      /falmarok next: Jump to next song
+      /falmarok prev: Jump to previous song
+
+   Control commands:
+      /falmarok local: Turn on local (test) mode.
+      /falmarok global: Turn on global (broadcast via chat) mode.
+      /falmarok help: Some help.
+
+  By default, Falmarok is in non-auto global mode.
+
+
+CONFIGURATION
+=============
+
+  There are no configuration options in this version, but you may be willing
+to change the message that is printed on tune change by mangling the
+nowp_format property in the falmarok object (near the top of the file).
+
+
+HOME
+====
+
+  This script is part of the FXChat main project, hosted at:
+
+    http://www.falconpl.org/?page_id=prjs&prj_id=fxchat
+
+
+COPYRIGHT
+=========
+
+  This program is Copyright of Giancarlo Niccolai (C) 2008. It is given as
+free software under the Falcon FPLL license 1.1 or Common Creative License 1.0
+at your choice.
+
+

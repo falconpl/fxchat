@@ -1,0 +1,18 @@
+/*==============================================
+   Xchat repeater.fal
+
+   Show a minimal usage of hookServer.
+
+   This script replies all the messages said on the
+   channels we're connected to. This is a very
+   essential test; check out test_server.fal
+   for a more complete explanation.
+==============================================*/
+
+function onServerMsg( msgInfo )
+   retMsg = @"$(msgInfo['nick']) said \"$(msgInfo['message'])\""
+   // target is the channel or nick to which the message is headed.
+   XChat.message( msgInfo[ 'target' ], retMsg )
+end
+
+XChat.hookServer( "PRIVMSG", onServerMsg )

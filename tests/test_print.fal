@@ -1,0 +1,44 @@
+/*==============================================
+   Xchat test_print.fal
+
+   Intercept some print event known by xchat.
+
+   The parameter event of onEvent() is a
+   dictionary containing message-specific
+   informations.
+==============================================*/
+
+// This is our callback
+// 'event' is mandatory; then the callback can receive
+// an arbitrary number of parameters that are the ones
+// it has been registered with.
+
+object objHandler
+   count = 0
+   function onEvent( event )
+      > "You have received a print event (handler called ", \
+         self.count++, " times)."
+
+      > "Events content: "
+      inspect( event )
+
+      return XCHAT_EAT_NONE
+   end
+end
+
+//=============
+// Main program
+
+// We Register some of server callbacks:
+XChat.hookPrint( "YOU JOIN", objHandler.onEvent )
+XChat.hookPrint( "YOU PART", objHandler.onEvent )
+XChat.hookPrint( "CHANNEL MESSGAE", objHandler.onEvent )
+XChat.hookPrint( "CHANNEL MSG HILIGHT", objHandler.onEvent )
+XChat.hookPrint( "CHANNEL ACTION", objHandler.onEvent )
+XChat.hookPrint( "GENERIC MESSGAE", objHandler.onEvent )
+XChat.hookPrint( "YOUR MESSGAE", objHandler.onEvent )
+XChat.hookPrint( "TOPIC", objHandler.onEvent  )
+
+// see test_server.fal to see the callback hook internals.
+
+> scriptName, ": Registration complete."

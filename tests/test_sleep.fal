@@ -1,0 +1,33 @@
+/*==============================================
+   Xchat test_sleep.fal
+
+   Shows how to create time-based callback in
+   Falcon. Just use sleep() falcon function,
+   even from coroutines, and XChat will resume
+   the script at right timing.
+==============================================*/
+
+// The coroutine
+// This will jump in concurrently to the main
+// routine. As the first sleep is of 4.5 seconds,
+// the first line will appare between the 4th and
+// 5th line of the main routine.
+function coro()
+   > "Coroutine launched"
+	sleep( 4.5 )
+	> "Hello, this is a coroutine jumping in"
+	sleep( 5.9 )
+	> "Coroutine is done"
+end
+
+//===================
+// main program
+
+launch coro()
+
+for i in [10 : 1]
+	> "Sleeping for ", i, " seconds..."
+	sleep( 1 )
+end
+
+> "Main loop is done"

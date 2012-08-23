@@ -1,0 +1,28 @@
+
+
+                        The XChat Falcon Plgugin
+
+                           Version 0.9 series
+
+  To compile this plugin for XChat2, you'll need XChat 2.x API and
+Falcon 0.9 (Albatros), or following versions, that can be found at
+
+     http://falconpl.org
+
+  To install this plugin, just copy or link it in your xchat home directory
+(generally ~/.xchat2), or follow the instructions for XChat2 plugin
+installation that can be found at http://www.xchat.org
+
+  Once installed, the "/falcon" command will be added to the availble
+user commands, and the File menu/load option will recognize scripts with the
+".fal" extension as Falcon scripts. Use the command "/falcon help" for
+detailed technical help on the plugin.
+
+  The directory /tests contains some example (the most complete of which is
+"parrot.fal"). The tests are commented and provide a minimal guide through
+initial script development.
+
+   Complete documentation for the plugin API can be found at
+
+      http://falconpl.org/?page_id=prjs&prj_id=fxchat
+

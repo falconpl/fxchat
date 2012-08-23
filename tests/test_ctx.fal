@@ -1,0 +1,34 @@
+/*==============================================
+   Xchat test_ctx.fal
+
+   Shows context object usage.
+   The context are the "tabs" that XChat work
+   with, and they have unique names for each
+   connected server or opened server tab.
+==============================================*/
+
+// finds fx-test "context"
+// the second parameter (server) is optional; when
+// omitted (as now), it means "current server".
+testCtx = XChat.findContext( "fx-test" )
+if testCtx == nil
+	> "testCtx not found; creating it"
+	XChat.command( "QUERY fx-test" )
+	testCtx = XChat.findContext( "fx-test" )
+end
+
+
+if testCtx != nil
+   // Ok, we have found it or created it. The context object
+   // has the vast majority of methods presented by the
+   // XChat object; just, doing them on the XChat context
+   // means "do it on the CURRENT context".
+	testCtx.print( "Printing something to the context\n" )
+	testCtx.emit( "Channel Message", "The message" )
+
+   // It is possible to record the current context
+   // with XChat.currentContext(), then set a temporary
+   // context with ctx.set(), do something, and switch back.
+else
+	> "Sorry, can't create the fx-test context"
+end

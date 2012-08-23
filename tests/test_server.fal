@@ -1,0 +1,45 @@
+/*==============================================
+   Xchat test_server.fal
+
+   Intercept PRIVMSG, JOIN and PART server
+   messages, showing the contents of the
+   intercepted events.
+
+   The parameter msgInfo is a dictionary
+   containing message-specific informations.
+
+==============================================*/
+
+// This is our callback
+// msgInfo is mandatory; then the callback can receive
+// an arbitrary number of parameters that are the ones
+// it has been registered with.
+function onServerMsg( msgInfo )
+	> "You have received an event \"", msgInfo["event"], "\""
+	>> "Msg info content: "
+
+   // Inspect output is sent to the error stream, which
+   // the xchat plugin prefixes with the script name.
+	inspect( msgInfo )
+
+	return XCHAT_EAT_PLUGIN
+end
+
+//=============
+// Main program
+
+// We Register a couple of server callbacks:
+XChat.hookServer( "PRIVMSG", onServerMsg )
+XChat.hookServer( "JOIN", onServerMsg )
+
+// Now we also take the registration object and show it:
+hook = XChat.hookServer( "PART", onServerMsg, "extra_data" )
+> "This is a Falcon hook object:"
+inspect( hook )
+
+// by changing the contents of the hook, it is possible
+// to change dynamically the callback function, or
+// the extra parameters it will receive.
+
+> scriptName, ": Registration complete."
+

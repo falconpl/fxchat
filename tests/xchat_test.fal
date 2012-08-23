@@ -1,0 +1,9 @@
+/*==============================================
+  XChat test.fal
+
+   Minimal test. This "smoke test"
+   Asks XChat to perform the command /help
+
+==============================================*/
+
+XChat.command( "help" )

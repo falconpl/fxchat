@@ -1,0 +1,223 @@
+/* ===========================================================
+                     Falmarok
+
+               Amarok interface for XChat
+
+                       -- * --
+                 By Giancarlo Niccolai
+                       -- * --
+
+This is Free Software. You are free to use it, copy it, change it,
+etc. as long as you cite the original author.
+
+This script is part of the FXChat main project, hosted at:
+
+    http://www.falconpl.org/?page_id=prjs&prj_id=fxchat
+    
+============================================================== */
+directive version=0x010200
+
+load process
+
+object falmarok
+
+   chat_mode = true
+   chat_command = self.chat
+   
+   /*
+      The standard now-playing format.
+      Use the follwing variables:
+      - artist
+      - album
+      - title
+      - year
+      - track
+      - bitrate
+   */
+   nowp_format = "Now playing [$(artist) - $(year)] \"$(title)\", in $(album) [$(track)] ($(bitrate) kbit/s)"
+
+   // Activate/deactivate auto mode
+   auto_active = false
+   
+   // our description:
+   description = '
+          --== Falmarok ==--
+   A Falcon interface for Amarok and XChat
+
+Commands (after /falmarok):
+   auto on: Activate automatic notify on play changes
+   auto off: De-acrivate automatic notify on play changes
+   nowp: Reports the currently playing tune
+   stop: Stop playing music
+   pause: Pause music
+   play: Start playing music
+   next: Jump to next tune
+   prev: Jump to previous tune
+   local: Turn on local (test) mode.
+   global: Turn on global (broadcast via chat) mode.
+'
+   //===================
+   // Parrot's main registration
+
+   // perform registration
+   function register()
+      XChat.hookCommand( "FALMAROK", self.onCmd )
+   end
+
+   function onCmd( cmd, param )
+      try
+         cmd, param = strSplit( param, " ", 2 )
+      catch
+         //cmd here may even be void, if param is void
+         cmd, param = param, nil
+      end
+
+      switch cmd
+
+         // Help command
+         case "", nil, "help"
+            self.onCmdHelp()
+
+         // Auto command
+         case "auto"
+            if param == "on"
+               if self.auto_active
+                  self.say( "Already active" )
+               else
+                  self.say( "Activating automatic now-playing notify" )
+                  self.auto_active = true
+                  launch periodic_check()
+               end
+            elif param == "off"
+               if self.auto_active
+                  self.say( "Turning off now-playing notify" )
+                  self.auto_active = false
+               end
+            else
+               self.say( "Unrecognized command." )
+               self.onCmdHelp()
+            end
+
+         // Now playing command
+         case "nowp"
+            self.onCmdNowp()
+
+         // Turn display to local command
+         case "local"
+            self.say( "Display mode now changed to local" )
+            self.chat_mode = false
+            self.chat_command = printl
+
+         // Turn display to global command
+         case "global"
+            self.say( "Display mode now changed to global" )
+            self.chat_mode = true
+            self.chat_command = self.chat
+
+         // Control commands
+         case "play", "stop", "pause", "next", "prev"
+            self.controlCmd( cmd )
+
+         // default
+         default
+            self.say( "Unrecognized command." )
+            self.onCmdHelp()
+      end
+
+      return XCHAT_EAT_ALL
+   end
+
+   function say( what )
+      > "falmarok: " + what
+   end
+
+   function onCmdNowp()
+      try
+         title = strTrim( pread( "dcop amarok player title" ) )
+         if not title
+            self.say( "Currently playing nothing; not notifying." )
+            return
+         end
+         
+         album = strTrim( pread( "dcop amarok player album" ) )
+         artist = strTrim( pread( "dcop amarok player artist" ) )
+         bitrate = strTrim( pread( "dcop amarok player bitrate" ) )
+         track = strTrim( pread( "dcop amarok player track" ) )
+         year = strTrim( pread( "dcop amarok player year" ) )
+      catch ProcessError in e
+         > "Sorry - couldn't use DCOP frontend: "
+         > e
+         return
+      end
+      
+      string = @ self.nowp_format
+      self.chat_command( string )
+   end
+
+   function controlCmd( cmd )
+      try
+         pread( "dcop amarok player " + cmd )
+         self.say( cmd + " done" )
+      catch ProcessError in e
+         self.say( "Sorry - couldn't use DCOP frontend: " )
+         self.say( e )
+      end
+   end
+
+   function onCmdHelp()
+      > self.description
+   end
+
+   function chat( string )
+      channel = XChat.getInfo( "channel" )
+      
+      if not channel
+         self.say( "Current context is not a channel; simply printing the message" )
+         self.say( string )
+      else
+         self.say( "Sending this: "+ string )
+         XChat.command( "PRIVMSG " + channel +" : "+ string )
+      end
+   end
+end
+
+//===================================
+// Coroutine for main check
+//
+
+function periodic_check()
+   nowp = pread( "dcop amarok player nowPlaying" )
+
+   while falmarok.auto_active
+      other_nowp = strTrim( pread( "dcop amarok player nowPlaying" ) )
+      if nowp != other_nowp
+         nowp = other_nowp
+         if nowp: falmarok.onCmdNowp()
+      end
+      sleep(5)
+   end
+end
+
+
+//===================================
+// The main program
+//
+
+> '
+      Falmarok
+
+Amarok interface for XChat
+
+      -- * --
+By Giancarlo Niccolai
+      -- * --
+'
+
+falmarok.register()
+> "Falmarok installed."
+>
+
+// Don't exit, so we can have parallel coroutines.
+while true
+   sleep( 10 )
+end

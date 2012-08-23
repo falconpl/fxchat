@@ -1,0 +1,16 @@
+
+function OnReflect( hook, id, cmd, text )
+   > cmd, ": You said: ", text
+
+   // change the callback
+   hook.callback = [ OnReflect, $hook, id + 1 ]
+
+   // change the intercepted command
+   hook.match = "TEST" + toString( id + 1 )
+
+   > "The intercepted command will be now: ", hook.match
+
+   return XCHAT_EAT_ALL
+end
+
+handler = XChat.hookCommand( "TEST", [ OnReflect, $handler, 0 ], "Replay what you say" )

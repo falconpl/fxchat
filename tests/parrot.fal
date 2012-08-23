@@ -1,0 +1,409 @@
+/* ==================================
+The parrot
+
+A Falcon Script for XChat
+
+      -- * --
+By Giancarlo Niccolai
+      -- * --
+
+================================== */
+
+//==========================
+// A bit of configuration
+
+utter_min_time = 60
+utter_random_time = 60
+
+act_min_time = 60
+act_random_time = 60
+
+//==============================================
+// Our parrot
+//
+
+object parrot
+
+   //===================
+   // Parrot's config
+
+   // our owner ... currently, we have none
+   owner = nil
+
+   // our description:
+   description = '
+   --== The Falcon''s Parrot ==--
+   A Falcon script for XChat
+   
+ Commands:
+    !owner -> tell who''s the owner of this parrot
+    !biscuit -> give a biscuit to this parrot
+    !repeat [nick] -> repeat my messages (owner can ask to repeat someone else)
+    !repeatOff [nick] -> stop repeating my messages
+    !report <message> -> save some message for the owner
+    !away <message> -> the owner may use this command to have the parrot to serve him
+    !utter [on|off] -> activates the utterance mode.
+    (end)
+'
+
+   //Salutation
+   salute = "$(join_nick): Welcome in this channel!\n"
+
+   // Salutation when in majordomo mode
+   salute_verbose = "
+       I am $(self.owner)'s parrot. You can save a message for him to read
+       when he's back with the command !report <message>."
+
+   // when in majordomo mode, this will be the away message.
+   majordomo = nil
+
+   majordomo_msg = "Before leaving, $(self.owner) said: $(self.majordomo).\n"
+
+   // a set of recorded messages.
+   majordomo_record = []
+
+   // channel handles.
+   channels = [=>]
+
+   // Repeat nick handles
+   repeat_nick = [=>]
+
+   // utter?
+   utterMode = 0
+
+   // Vaious things parrots can say
+   utterances = [
+         "Squeak!",
+         "Rrrook!",
+         "Qwiii!",
+         "Fiii!",
+         "Squeak~~ Squeaaaak!"]
+
+   // actions the parrot can do
+   actions = [\
+      "ruffles his feathers",
+      "raises a leg and then puts it down",
+      "flap his wings",
+      "stares at $(target)",
+      "blinks at $(target)",
+      "blinks" ]
+
+   //===================
+   // Parrot's main registration
+
+   // perform registration
+   function register()
+      XChat.hookPrint( "You Join", self.hail )
+      XChat.hookPrint( "You Part", self.bye )
+      XChat.hookPrint( "Join", self.hail_joining )
+      XChat.hookServer( "PRIVMSG", self.onPrivmsg )
+      XChat.hookCommand( "PARROT", self.onCmdParrot )
+   end
+
+   // say hello when entering a channel
+   function hail( cmdInfo )
+      channel = cmdInfo[ 'channel' ]
+      > @ "The parrot enters $(channel)!"
+
+      XChat.message( channel,
+         @ "The parrot enters $(channel)!" )
+
+      // create a variable on which to coordinate the coroutines.
+      self.channels[ channel ] = 1 // channel active.
+
+      // launch the coroutines
+      launch self.utter( channel, "extra" )
+      launch self.act( channel, "F-param" )
+      return XCHAT_EAT_NONE
+   end
+
+   // and say goodbye when leaving a channel
+   function bye( cmdInfo )
+      channel = cmdInfo[ 'channel' ]
+
+      > @ "The parrot leaves $(channel)!"
+      dictRemove( self.channels, channel )
+
+      return XCHAT_EAT_NONE
+   end
+
+   // and say hello to new entries
+   function hail_joining( cmdInfo )
+      join_nick = cmdInfo[ 'nick' ]
+      chn = cmdInfo['channel']
+      XChat.message( chn, @self.salute )
+      if self.majordomo
+         XChat.message( chn, @ self.salute_verbose )
+         XChat.message( chn, @ self.majordomo_msg )
+      end
+   end
+
+   //===================
+   // Parrot's command iface
+
+   function onCmdParrot( cmd, param )
+      try
+         cmd, param = strSplit( param, " ", 2 )
+      catch
+         //cmd here may even be void, if param is void
+         cmd, param = param, nil
+      end
+
+      switch cmd
+         case "", nil, "help"
+            self.onCmdHelp()
+         case "owner"
+            self.onCmdOwner( param )
+         case "utter"
+            self.onCmdUtter( param )
+         default
+            > "parrot: Unrecognized command."
+            self.onCmdHelp()
+      end
+
+      return XCHAT_EAT_ALL
+   end
+
+
+   function onCmdHelp()
+      > "parrot:  use /parrot <cmd> [params]"
+      > "parrot:  - /parrot utter [on|off] -- turns automatic utterances and actions on or off"
+      > "parrot:  - /parrot owner <owner_nick> -- sets the nick that is being owner of this parrot"
+   end
+
+   function onCmdOwner( param )
+      if param
+         self.owner = param
+         > "parrot: Setting owner to " + param
+      else
+         self.owner = nil
+         > "parrot: Resetting owner"
+      end
+   end
+
+   function onCmdUtter( param )
+      if param == "on"
+         self.utterMode = 1
+      elif param == "off"
+         self.utterMode = 0
+      else
+         > "parrot: Utter parameter must be on or off"
+      end
+   end
+
+   // Reaction on private messages
+   function onPrivmsg( cmdInfo )
+      message = cmdInfo[ 'message' ]
+      if " " in message
+         cmd, message = strSplit( message, " ", 2 )
+      else
+         cmd = message
+         message = ""
+      end
+
+      if cmd[0] != "!": return XCHAT_EAT_NONE
+
+      // In case of error,
+      // it's a mismatch or invalid format for sure
+      return self.onParrotCommand( cmd, message, cmdInfo )
+   end
+
+   // Parse parrots command
+   function onParrotCommand( cmd, message, cmdInfo )
+      // first of all, determine the target of the reply.
+      nick = cmdInfo['nick']
+
+      switch cmd
+         // reply to list requests
+         case "!list"
+            lines = strSplit( self.description, "\n" )
+            for l in lines
+               XChat.command( "NOTICE " + nick + " " + l )
+            end
+
+         // tell's who'se the owner.
+         case "!owner"
+            if self.owner
+               XChat.command( @"NOTICE $(nick) My owner is $(self.owner)." )
+            else
+               XChat.command( @"NOTICE $(nick) I have currently no owner." )
+            end
+
+         case "!biscuit"
+            // if the target is starting with '#' is a channel
+            if cmdInfo['target'][0] == '#'
+               XChat.message( cmdInfo['target'], "SQUEAK!!!!!" )
+            else
+               XChat.message( nick, "SQUEAK!!!!!" )
+            end
+
+         case "!utter"
+            if self.owner == nick
+               if message == "on" or message == "off"
+                  self.onCmdUtter( message )
+                  XChat.command( @ "NOTICE $nick Utter mode changed" )
+               else
+                  XChat.command( @ "NOTICE $nick Utter mode invalid" )
+               end
+            else
+               XChat.command( @ "NOTICE $nick SQUEAK!!! Ya'r not owner!" )
+            end
+
+         case "!away"
+            if self.owner == nick
+               if message
+                  self.majordomo = message
+                  XChat.command( @ "NOTICE $nick I will await your comeback" )
+               else
+                  self.majordomo = nil
+                  XChat.command( @ "NOTICE $nick Welcome back!" )
+                  self.onOwnerReturned( nick )
+               end
+            else
+               XChat.command( @ "NOTICE $nick Croot... Squeak... ya no me master!" )
+            end
+
+         case "!repeat"
+            if self.owner == nick
+               self.follow[ message ] = 1
+               XChat.command( @ "NOTICE $nick Following nick $message!" )
+            else
+               XChat.command( @ "NOTICE $nick Croot... Squeak... ya no me master!" )
+            end
+
+         case "!repeatOff"
+            if self.owner == nick
+               if dictRemove( self.follow, message )
+                  XChat.command( @ "NOTICE $nick Stopping following $message!" )
+               else
+                  XChat.command( @ "NOTICE $nick I wasn't following $message!" )
+               end
+            else
+               XChat.command( @ "NOTICE $nick Croot... Squeak... ya no me master!" )
+            end
+
+         case "!report"
+            if self.majordomo
+               self.saveMessage( message, nick )
+               XChat.command( @ "NOTICE $nick Crooook.... Message stored." )
+            else
+               XChat.command( @ "NOTICE $nick Squeak... my master $(self.owner) is currently available." )
+            end
+      end
+   end
+
+   function saveMessage( msg, nick )
+      time = CurrentTime()
+      message = time.toString() + " - " + nick + ": " + msg
+      self.majordomo_record += message
+      //TODO: save it to a file
+   end
+
+   function onOwnerReturned( nick )
+      if self.majordomo_record
+         XChat.command( @ "PRIVMSG $nick : Welcome back; this is the list of messages you received while you were away." )
+         for msg in self.majordomo_record
+            XChat.command( @ "PRIVMSG $nick : $msg" )
+         end
+         self.majordomo_record = []
+      end
+   end
+
+   //===================
+   // Parrot's "goodies"
+
+   function utter( channel )
+      time = random() * utter_random_time + utter_min_time
+      > "Parrot: uttering on channel ", channel
+      loop
+         sleep( time )
+         // has this channel been removed? -- then exit the coroutine
+         if channel notin self.channels: break
+         // are we temporarily suspended? -- continue
+         if not self.utterMode: continue
+
+         thing_to_say = randomPick( self.utterances )
+         > "Parrot: uttering ", thing_to_say
+         XChat.message( channel, thing_to_say )
+         time = random() * utter_random_time + utter_min_time
+      end
+   end
+
+
+   function act( channel )
+      > "Parrot: acting on channel ", channel
+      time = random() * act_random_time + act_min_time
+      ctx = XChat.findContext( channel )
+      if ctx == nil
+         > "Sorry, act coroutine for ", channel, " can't find the context."
+         return
+      end
+
+      ctx.print( "Parrot: acting on this channel\n" )
+      loop
+         sleep( time )
+
+         // has this channel been removed? -- then exit the coroutine
+         if channel notin self.channels: break
+
+         // are we temporarily suspended? -- continue
+         if not self.utterMode: continue
+
+         thing_to_say = randomPick( self.actions )
+         // if the action has a target...
+         if "$(target)" in thing_to_say
+            target = self.pickTarget( ctx )
+            if not target: continue
+         end
+
+         // use the @ operator to have string espanded and use "target" local var.
+         // if we have a target...
+         > "Parrot: doing action ", @thing_to_say
+         ctx.command( "ME " + @thing_to_say )
+
+         // next random wait
+         time = random() * act_random_time + act_min_time
+      end
+   end
+
+
+   function pickTarget( ctx )
+      users = ctx.listUsers()
+      // no good targets?
+      if users.len() < 2: return nil
+
+      myNick = XChat.getInfo( "nick" )
+
+      // ...then pick a random target in the channel
+      loop
+         // pick a random user
+         user = randomPick( users )
+         //and get it's nick
+         target = user[ 'nick' ]
+         // be sure it's not me
+         if target != myNick: return target
+
+         arrayDel( users, user )
+      end
+
+      return target
+   end
+
+end
+
+//===================================
+// The main program
+//
+
+> '
+     The parrot
+
+A Falcon Script for XChat
+
+      -- * --
+By Giancarlo Niccolai
+      -- * --
+'
+
+parrot.register()
+> "Parrot installed."

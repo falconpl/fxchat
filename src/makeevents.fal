@@ -1,0 +1,92 @@
+// Make events
+
+load regex
+
+if args.len() != 1
+	> "Please, specify path of textevents.h and textevents.cpp"
+	return
+end
+
+// try to open the input CPP
+input = InputStream( args[0] + "/text.c" )
+params = [=>]
+
+mode = 0
+line = ""
+reStructOpen = Regex( 'static char \* const\s*([^[]+)\[\]' )
+reParamDesc = Regex( 'N_\(\s*"(.+)"\s*\)' )
+
+loop
+   input.readLine( line, 1024 )
+	if input.eof(): break
+
+	if mode == 0
+		if reStructOpen.match( line )
+			structName = line[ reStructOpen.captured(1) ]
+			structParams = []
+			//> "Found: ", structName
+			mode = 1
+      end
+   else
+   	if reParamDesc.match( line )
+   		structParams += line[ reParamDesc.captured(1) ]
+      else
+      	mode = 0
+      	params[ structName ] = structParams
+      	//inspect( structParams )
+      end
+   end
+end
+
+input.close()
+
+// now try the other file:
+input = InputStream( args[0] + "/textevents.h" )
+
+events = [=>]
+reStruct = Regex( '\{\s*"(.+)",\s*(.*)\s*,\s*([0-9]+)\s*,' )
+loop
+	input.readLine( line )
+	if input.eof(): break
+
+	if reStruct.match( line )
+		pCount = int( line[ reStruct.captured(3) ] )
+		sname = line[ reStruct.captured(2) ]
+		event = line[ reStruct.captured(1) ]
+
+		try
+			ps = params[ sname ]
+      catch
+      	ps = nil // len of nil is 0
+      end
+
+		if pCount > ps.len(): pCount = ps.len()
+		events[ event ] = pCount > 0 ? ps[ 0: pCount ] : nil
+   end
+end
+
+input.close()
+
+// Now we have all the events; print them
+> "void LoadEventParamMap()
+{
+
+   ParamDescList *p;
+"
+
+for event, params in events
+	> "   p = &s_PMevent[ \"", event, "\" ];"
+
+	for pr in params
+		> "      p->push_back( ParamDesc( \"<todo>\", \"", pr, "\" ) );"
+   end
+   >
+end
+
+> "\n}\n"
+
+
+
+
+
+

@@ -1,0 +1,25 @@
+/*==============================================
+   Xchat test_timer.fal
+
+   This script shows how to use timer callbacks.
+   However, notice that the preferred way to use
+   timed events in Falcon is to use sleep() and
+   eventually coroutines as it's shown in the
+   test_sleep.fal script.
+================================================*/
+
+
+function timer_callback( data )
+	> "called back with: ", data
+	if data != nil
+		XChat.hookTimer( 1.0, timer_callback, nil )
+		> "Posted another wait"
+   else
+   	> "Terminating"
+   end
+end
+
+> "installing handler"
+XChat.hookTimer( 3.2, timer_callback, "the data" )
+
+

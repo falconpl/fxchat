@@ -1,0 +1,122 @@
+/*#
+   @page fxchat_overview Falcon XChat overview.
+
+   This page contains the outlines of the XChat plugin providing scripting
+   facilites in the Falcon Programming Language. The contents of this document
+   were initially presented to the author of XChat when the plugin was first
+   released.
+
+   @section Introduction to the FXchat plugin.
+
+As Falcon is currently little known as a programming language, especially if
+compared with Python, PERL or Ruby, and considering that that the module library
+is still small, I thought that I should have provided the script writers
+with some extra features to provide some appeal to use falcon. So I put some
+features that, although a bit costy to be written and maintained, are surely
+very attractive for the script writers, and possibly allow for simpler script
+writing and better performances.
+
+The first one is dictionary mapping for server and print events. In example,
+this is a PRIVMSG as seen by a script:
+@code
+ Extra data: extra_data
+ Dict[7]{
+    "nick:all" => "jonnymind_!jm@7750c3df.mi2.eb1f60a2.net.hmsk"
+    "event" => "PRIVMSG"
+    "message" => "ciao a tutti quanti!!!"
+    "nick" => "jonnymind_"
+    "nick:net" => "7750c3df.mi2.eb1f60a2.net.hmsk"
+    "nick:user" => "jm"
+    "target" => "#test"
+ }
+@endcode
+
+Here is the script generating it:
+@code
+function onServerMsg( msgInfo, extra1 )
+        > "Extra data: ", extra1
+        inspect( msgInfo )
+        return XCHAT_EAT_PLUGIN
+end
+
+XChat.hookServer( "PRIVMSG", onServerMsg, "extra_data" )
+@endcode
+
+A mapping parameter - explanation allows for documentation of the dictionary
+voices that compose each message information. Unregistered messages (i.e.
+messages not in the dictionary, and/or messages that have an arbitrary number
+of parameters as "who") are handled by putting a list of all the words
+in "wordlist" entry of the msgInfo dictionary, so it is still possible to
+handle new messages that may not be known by the plugin.
+
+This is by far more ergonomic than peeking in the word/word_eol array, having
+possibly to handle different messages differently, and as is C doing a
+parsing that is usually performed by scripts, it should be also more
+efficient.
+
+-----
+
+The second extra feature available to the script writers is automation of
+timer callbacks through the coroutine system. See this script:
+@code
+
+//=====================
+// Xchat test_sleep.fal
+//=====================
+
+function coro()
+        sleep( 4.5 )
+        > "Hello, this is a coroutine jumping in"
+        sleep( 5.9 )
+        > "Coroutine is done"
+end
+
+//===================
+// main program
+
+launch coro()
+
+for i = 10 to 1
+        > "Sleeping for ", i, " seconds..."
+        sleep( 1 )
+end
+
+> "Main loop is done"
+@endcode
+
+The VM has an internal scheduling policy that manages coroutine execution,
+locks and semaphores. When the VM detects that a sleep is necessary to
+perform scheduling, it returns to the calling application (i.e. xchat falcon
+plugin). The plugin translates sleep requests into xchat timeout callbacks.
+The net effect is that script writers can sleep, wait for semaphores in
+coroutines, receive events and everything will be handled transparently. As
+far as I know, doing this with the other plugins requires a ceratin deal of
+XChat.hook_timeout() juggling, if this is possible at all. However, it is
+present an interface to the timeout hooks too.
+
+A third, possibly interesting feature is self-unloading of scripts. If a
+script exits the VM (i.e. exits a callback handler or the main loop) having
+not any active hook or sleep request, it is unloaded. This has the effect to
+make "automatic" the registration process of the script with the plugin (and
+with xchat), making simple to perform registration startup sequence as well
+as one shoot only scripts.
+
+Another worthy feature is the dynamic handler change: the return value of
+XChat.hookXXX is a XChatHook class instance; it contains some informations
+that may be altered after hook registraition. Most notabily, the callback
+function may be hot-changed (i.e. by the hook itself, by another hook or by a
+coroutine) without the need of de-registration and re-registration. Also,
+callback data (the extra data) may be changed dynamically this way. The
+returned handle, of course, allows also for unhooking.
+
+Falcon can be quite compact; this is a script repeating anything said in
+active contexts:
+Code:
+@code
+function onServerMsg( msgInfo )
+   retMsg = @"$(msgInfo['nick']) said \"$(msgInfo['message'])\""
+   XChat.message( msgInfo[ "target" ], retMsg )
+end
+
+XChat.hookServer( "PRIVMSG", onServerMsg )
+@endcode

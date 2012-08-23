@@ -1,0 +1,31 @@
+/*
+   FALCON - The Falcon Programming Language.
+   FILE: @PROJECT_NAME@.h
+
+   @DESCRIPTION@
+   -------------------------------------------------------------------
+   Author: @AUTHOR@
+   Begin: @DATE@
+   Last modified because:
+
+   -------------------------------------------------------------------
+   (C) Copyright 2004: the FALCON developers (see list in AUTHORS file)
+
+   See LICENSE file for licensing details.
+*/
+
+/** \file
+   @DESCRIPTION@
+*/
+
+#ifndef @PROJECT_NAME@_something_here_H
+#define @PROJECT_NAME@_something_here_H
+
+
+namespace Falcon {
+
+}
+
+#endif
+
+/* end of @PROJECT_NAME@.h */

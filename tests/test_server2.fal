@@ -1,0 +1,19 @@
+object objHandler
+   count = 0
+
+   function onEvent( event )
+      > "You have received a server message (handler called ", \
+         self.count++, " times)."
+
+      > "Events content: "
+      inspect( event )
+
+      return XCHAT_EAT_NONE
+   end
+end
+
+//=============
+// Main program
+
+XChat.hookServer( "PRIVMSG", objHandler.onEvent )
+XChat.hookServer( "JOIN", objHandler.onEvent )

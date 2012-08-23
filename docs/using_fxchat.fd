@@ -1,0 +1,69 @@
+/*#
+   @page using_fxchat Using The Falcon XChat Plugin.
+
+   Once loaded, the module provides the @b /FALCON command from the xchat
+   prompt, and allows loading of .fal, .fam and .ftd modules as scripts.
+
+   The @b /FALCON command has the following sub-commands:
+      - @b LOAD <filename>: Loads a script.
+      - @b UNLOAD <name>: Unloads a module (using either its logical name or the original filename)
+      - @b RELOAD <name>: Reloads an already loaded module (either by logical name or filename).
+      - @b LIST: Lists all the loaded scripts and their current status.
+      - @b HELP: Gives a bit of help on this plugin.
+      - @b ABOUT: Displays authors and copyright.
+
+   The logical name of a module is it's filename, stripped of extension and leading path.
+   (In future it may be provided internally i.e. with a compiler directive). Logical names
+   for loaded scripts must be unique, or the plugin will refuse to load it.
+
+   At load time, the main code of the loaded script is executed. The script may then require
+   to place some callback that will be called after its termination, when events occour in
+   XChat. In their main code, scripts can also provide hooks for new commands.
+
+   If the script doesn't install any handler, as the execution of the main code is completed,
+   it gets automatically unloaded; otherwise, it stays and can be listed through the /FALCON LIST command.
+
+   @section Getting help on callbacks.
+
+   Falcon plugin system provides two xchat callback hooks: server message hooks and print hooks.
+   Server Mesagge Hooks get called when a server message is received in the context where the script
+   is active (i.e. the window where it is launched or that it monitors), while print hooks are called
+   when XChat generates a "print event". A print event is more or less a special XChat message that
+   gets printed on a context (an xchat window).
+
+   A callback event will call a script function or method filling an @b event @b contents @b dictionary
+   with some values; each
+   callback has different elements that can be passed back to the callback handler. The keys filled in
+   the event contents dictionary can be retreived in advance by using the /FALCON HELP EVENT <event> and
+   /FALCON HELP MESSAGE <msg> commands. In example:
+   @code
+      /FALCON HELP MESSAGE USER
+
+      fxchat: Server message "USER" parameters:
+      fxchat:   * nick = The nickname sent with this message
+      fxchat:   * nick:user = The user name part of this nick.
+      fxchat:   * nick:net = The network part of this nick.
+      fxchat:   * nick:all = Complete nickname of the user
+      fxchat:   * event = The name of the sent event
+      fxchat:   * user = User name
+      fxchat:   * host = Host
+      fxchat:   * server = Server name
+      fxchat:   * name = Real user name
+   @endcode
+   Or in case of print events:
+   @code
+    /FALCON HELP EVENT Your Action
+
+    fxchat: Print event "Your Action" parameters:
+    fxchat:   * nick = Nickname
+    fxchat:   * action = The action
+    fxchat:   * mode = Mode char
+   @endcode
+
+   The list of event and messages that can be intercepted by scripts is available through the commands
+   /FALCON HELP EVENTS and /FALCON HELP MESSAGES
+
+   Explaining the meaning of all the server messages and xchat print events is beyond the scope of this
+   guide. Please, refer to the XChat guide for informations about the semantics of each event and of the
+   data it provides.
+*/
